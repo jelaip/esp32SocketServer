@@ -7,7 +7,7 @@ var server = http.createServer(function(request, response) {
     response.end();
 });
 server.listen(5000, function() {
-    console.log((new Date()) + ' Server is listening on port 5000');
+    console.log(' Server is listening on port 5000');
 });
 
 wsServer = new WebSocketServer({
@@ -20,7 +20,7 @@ function originIsAllowed(origin) {
 }
 
 wsServer.on('request', function(request) {
-    console.log(request)
+    //console.log(request)
     if (!originIsAllowed(request.origin)) {
         request.reject();
         console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
@@ -28,22 +28,26 @@ wsServer.on('request', function(request) {
     }
 
     var connection = request.accept(null, request.origin)
-    console.log((new Date()) + ' Connection accepted.');
+    console.log(' Connection accepted.');
 
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             console.log('Received Message: ' + message.utf8Data);
-            connection.sendUTF(message.utf8Data);
-            connection.sendUTF("recu");
+            //connection.sendUTF(message.utf8Data);
+            // send to all connected clients
+            wsServer.broadcastUTF(message.utf8Data);
+
+
+            //connection.sendUTF("recu");
         } else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-            connection.sendBytes(message.binaryData);
+            //connection.sendBytes(message.binaryData);
         }
     });
 
 
 
     connection.on('close', function(reasonCode, description) {
-        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        console.log(connection.remoteAddress + ' disconnected.');
     });
 });
